@@ -140,15 +140,23 @@
     <div class="h-16 w-full"></div> <!-- Adjust h-16 for desired space (approx 2 lines of text) -->
 
     <script type="module">
-        // Firebase imports
+        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Analytics is optional and not directly used in core functionality
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, collection, query, where, addDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables for Firebase config and app ID
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUf0QF4GqMb6s9ODTUiX7aTHRTR0YUqcE",
+            authDomain: "html-3ce83.firebaseapp.com",
+            databaseURL: "https://html-3ce83-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "html-3ce83",
+            storageBucket: "html-3ce83.firebasestorage.app",
+            messagingSenderId: "602585837585",
+            appId: "1:602585837585:web:77c6f1adf8e7edfc4d81b0",
+            measurementId: "G-GFRJP832GJ"
+        };
 
         // Firebase App and Services
         let app;
@@ -441,21 +449,34 @@
         async function initializeFirebase() {
             try {
                 showLoading();
+                // Initialize Firebase with the provided config
                 app = initializeApp(firebaseConfig);
+                // analytics = getAnalytics(app); // Uncomment if you need analytics
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
+                // Determine the correct appId for Firestore collection path
+                // Using __app_id if available, otherwise fallback to firebaseConfig.projectId
+                const currentAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+
+                // Check if __initial_auth_token is defined and not null before using it
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== null) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } catch (tokenError) {
+                        console.error("Error with custom token, signing in anonymously:", tokenError);
+                        await signInAnonymously(auth); // Fallback to anonymous sign-in if custom token fails
+                    }
                 } else {
-                    await signInAnonymously(auth);
+                    await signInAnonymously(auth); // Sign in anonymously if no initial token is provided
                 }
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
                         console.log("Authenticated user ID:", userId);
-                        salesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/sales`);
+                        // Use the determined currentAppId for the collection path
+                        salesCollectionRef = collection(db, `artifacts/${currentAppId}/users/${userId}/sales`);
                         updateDateDisplay(); // Initial display and fetch
                     } else {
                         userId = null;
@@ -467,6 +488,7 @@
             } catch (error) {
                 console.error("Error initializing Firebase or authenticating:", error);
                 salesListElem.innerHTML = `<li class="text-center text-red-500">ဒေတာတင်မရပါ။ (${error.message})</li>`;
+                showCustomModal(`ဒေတာတင်မရပါ။ (${error.message})`, 'alert'); // Show alert for initialization errors
                 hideLoading();
             }
         }
@@ -665,7 +687,9 @@
                 if (confirmed) {
                     showLoading();
                     try {
-                        await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/sales`, saleId));
+                        // Use the currentAppId for the collection path during deletion
+                        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+                        await deleteDoc(doc(db, `artifacts/${currentAppId}/users/${userId}/sales`, saleId));
                         showToast("အရောင်းစာရင်း ဖျက်ပြီးပါပြီ။");
                         console.log("Sale deleted successfully!");
                     } catch (error) {
