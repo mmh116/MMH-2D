@@ -3,149 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D အရောင်း စာရင်းပြုစုခြင်း</title>
+    <title>အရောင်း စာရင်းပြုစုခြင်း App</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Custom scrollbar for sales list */
-        .sales-list-container::-webkit-scrollbar {
+        /* Custom styles for a modern look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .rounded-lg {
+            border-radius: 0.75rem; /* More rounded corners */
+        }
+        .rounded-full {
+            border-radius: 9999px; /* Fully rounded for buttons */
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        /* Scrollbar styling for admin view */
+        #admin-sales-list::-webkit-scrollbar {
             width: 8px;
         }
-        .sales-list-container::-webkit-scrollbar-track {
+        #admin-sales-list::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
-        .sales-list-container::-webkit-scrollbar-thumb {
+        #admin-sales-list::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 10px;
         }
-        .sales-list-container::-webkit-scrollbar-thumb:hover {
+        #admin-sales-list::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
-
-        /* Ensure Inter font is used */
-        body {
-            font-family: "Inter", sans-serif;
+        /* Style for textarea */
+        textarea {
+            resize: vertical; /* Allow vertical resizing */
+            min-height: 50px; /* Minimum height */
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            width: 100%;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 min-h-screen flex flex-col items-center py-4">
+<body>
+    <div class="min-h-screen bg-gray-100 flex flex-col">
+        <!-- Message Box for notifications (instead of alert) -->
+        <div id="message-box" class="hidden fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-2 z-50 text-sm font-medium"></div>
 
-    <!-- Main Application Container -->
-    <div class="bg-white rounded-2xl shadow-xl p-4 w-full max-w-md flex flex-col flex-grow relative mb-40">
-
-        <!-- Header and Date Navigation -->
-        <div class="flex items-center justify-between mb-2 p-2 bg-blue-600 text-white rounded-xl shadow-md">
-            <button id="prevDate" class="p-2 rounded-full hover:bg-blue-700 transition-colors text-sm">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <h2 id="currentDate" class="text-lg font-bold text-center flex-grow"></h2>
-            <button id="showTotalSalesBtn" class="ml-2 p-2 rounded-full bg-purple-500 hover:bg-purple-600 transition-colors text-sm">
-                <i class="fas fa-calculator"></i>
-            </button>
-            <button id="nextDate" class="ml-2 p-2 rounded-full hover:bg-blue-700 transition-colors text-sm">
-                <i class="fas fa-arrow-right"></i>
-            </button>
-        </div>
-
-        <!-- Session Selection -->
-        <div class="flex justify-center space-x-4 mb-4">
-            <button id="morningSessionBtn" class="px-4 py-2 rounded-lg shadow-md transition-colors text-white bg-green-500 hover:bg-green-600">
-                မနက်
-            </button>
-            <button id="eveningSessionBtn" class="px-4 py-2 rounded-lg shadow-md transition-colors text-white bg-gray-500 hover:bg-gray-600">
-                ညနေ
-            </button>
-        </div>
-
-        <!-- Sales List Container -->
-        <div id="salesListContainer" class="flex-grow overflow-y-auto sales-list-container mb-4 pr-2">
-            <ul id="salesList" class="space-y-2">
-                <!-- Sales items will be dynamically added here -->
-            </ul>
-        </div>
-
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-2xl z-10 hidden">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-
-        <!-- Custom Alert/Confirmation Modal -->
-        <div id="customModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-6 rounded-lg shadow-xl w-80">
-                <p id="modalMessage" class="mb-4 text-center"></p>
-                <div class="flex justify-center space-x-4">
-                    <button id="modalConfirmBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 hidden">အတည်ပြုပါ</button>
-                    <button id="modalCancelBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 hidden">ဖျက်သိမ်းပါ</button>
-                    <button id="modalOkBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 hidden">အိုကေ</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Correction Modal -->
-        <div id="correctionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md flex flex-col">
-                <h3 class="text-lg font-bold mb-4 text-center text-red-600">ထည့်သွင်းမှုမှားယွင်းချက်များ</h3>
-                <p id="correctionModalMessage" class="text-sm text-gray-700 mb-3">အောက်ပါစာကြောင်းများတွင် ပုံစံမှားယွင်းမှုများရှိပါသည်။ ကျေးဇူးပြု၍ ပြင်ဆင်ပြီး ပြန်ထည့်ပါ။</p>
-                <textarea id="correctionInput" rows="8" class="flex-grow p-3 border border-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-base mb-4 resize-y"></textarea>
-                <div class="flex justify-end space-x-4">
-                    <button id="correctAndAddBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">ပြင်ဆင်ပြီး ထည့်သွင်းပါ</button>
-                    <button id="closeCorrectionModalBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">ပိတ်မည်</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Sales Summary Modal -->
-        <div id="summaryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md max-h-[80vh] flex flex-col">
-                <h3 class="text-lg font-bold mb-4 text-center">နေ့စဉ်အရောင်း စုစုပေါင်း (<span id="summaryDate"></span>)</h3>
-                <div class="flex-grow overflow-y-auto border border-gray-300 p-3 rounded-lg mb-4 bg-gray-50">
-                    <pre id="summaryContent" class="whitespace-pre-wrap text-sm"></pre>
-                </div>
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-md font-semibold">စုစုပေါင်း: <span id="summaryTotalAmount" class="text-blue-600">0</span> ကျပ်</span>
-                    <button id="copySummaryBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center">
-                        <i class="fas fa-copy mr-2"></i> ကူးယူပါ
-                    </button>
-                </div>
-                <button id="closeSummaryModalBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 self-end">
-                    ပိတ်မည်
+        <!-- Header Section: Date Navigation, Nickname, Admin View Button -->
+        <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 shadow-md flex justify-between items-center rounded-b-lg">
+            <!-- Date Navigation -->
+            <div class="flex items-center space-x-2">
+                <button id="prev-date-btn" class="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition duration-300 ease-in-out transform hover:scale-105">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <span id="current-date" class="text-sm font-semibold"></span>
+                <button id="next-date-btn" class="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition duration-300 ease-in-out transform hover:scale-105">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
             </div>
+
+            <!-- Nickname Display & Button, Admin View Button -->
+            <div class="flex items-center space-x-3">
+                <span id="current-nickname" class="text-sm font-medium">အမည်မသိ</span>
+                <button id="nickname-circle-btn" class="w-8 h-8 rounded-full bg-white bg-opacity-30 hover:bg-opacity-40 flex items-center justify-center text-white text-sm font-bold shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    N
+                </button>
+                <button id="admin-view-button" class="hidden px-3 py-1 bg-yellow-400 text-yellow-900 text-sm font-semibold rounded-full shadow-md hover:bg-yellow-300 transition duration-300 ease-in-out transform hover:scale-105">
+                    Admin View
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area: Sales List -->
+        <main class="flex-1 p-4 overflow-y-auto pb-20"> <!-- pb-20 adds space for the fixed footer -->
+            <!-- Removed "ယနေ့ အရောင်းစာရင်း" heading -->
+            <div id="sales-list" class="space-y-3">
+                <!-- Sales entries will be loaded here dynamically by JavaScript -->
+                <p class="text-center text-gray-500">အရောင်းစာရင်းများ မရှိသေးပါ။</p>
+            </div>
+            <!-- Daily Total Display -->
+            <div class="mt-6 p-4 bg-blue-100 rounded-lg shadow-inner flex justify-between items-center">
+                <!-- Removed "နေ့စဉ် စုစုပေါင်း:" text -->
+                <span id="daily-total" class="text-xl font-bold text-blue-900">0</span>
+                <span class="text-md font-semibold text-blue-800">ကျပ်</span>
+            </div>
+        </main>
+
+        <!-- Footer Section: Bet Amount Input and Add Button -->
+        <footer class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t border-gray-200">
+            <div class="flex items-center space-x-3">
+                <!-- Changed input to textarea to allow multi-line input -->
+                <textarea id="bet-amount-input" placeholder="ထိုးကြေးထည့်ပါ" rows="2" class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"></textarea>
+                <button id="add-bet-button" class="w-12 h-12 rounded-full bg-green-500 text-white text-3xl font-bold flex items-center justify-center shadow-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">
+                    +
+                </button>
+            </div>
+            <div class="h-8"></div> <!-- Provides two lines of empty space below the input -->
+        </footer>
+
+        <!-- Nickname Modal -->
+        <div id="nickname-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
+                <h3 class="text-lg font-bold mb-4 text-gray-800">Nickname သတ်မှတ်ရန်</h3>
+                <input type="text" id="nickname-input-field" placeholder="သင်၏ Nickname ထည့်ပါ" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+                <div class="flex justify-end space-x-3">
+                    <button id="close-nickname-modal" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition text-sm">ပယ်ဖျက်မည်</button>
+                    <button id="set-nickname-button" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">သတ်မှတ်မည်</button>
+                </div>
+            </div>
         </div>
 
-
-        <!-- Toast Message -->
-        <div id="toastMessage" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50">
-            Toast message here
+        <!-- Admin View Modal -->
+        <div id="admin-view-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-3xl h-5/6 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">Admin View - အရောင်းစာရင်းများ</h3>
+                    <button id="close-admin-view-modal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                </div>
+                <div id="admin-sales-list" class="flex-1 overflow-y-auto pr-2">
+                    <!-- All sales data for admin will be loaded here -->
+                    <p class="text-center text-gray-500">ဒေတာများ တင်နေသည်...</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Fixed Bottom Input Section -->
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white rounded-t-2xl shadow-lg border-t border-gray-200 w-full max-w-md">
-        <div class="flex items-center space-x-2">
-            <!-- Changed input to textarea for multi-line paste -->
-            <textarea id="amountInput" rows="4" placeholder="ထိုးကြေးများ ထည့်ပါ (တစ်ကြောင်းချင်းစီ ခွဲထည့်ပါ)"
-                      class="flex-grow p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-base resize-y"></textarea>
-            <button id="addBetButton"
-                    class="bg-green-500 text-white p-3 rounded-xl shadow-md hover:bg-green-600 transition-colors text-lg flex items-center justify-center w-12 h-12">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- This div creates the empty space at the very bottom of the page, below the fixed input -->
-    <div class="h-16 w-full"></div> <!-- Adjust h-16 for desired space (approx 2 lines of text) -->
-
+    <!-- Firebase SDKs -->
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Analytics is optional and not directly used in core functionality
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, query, where, addDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, deleteDoc, onSnapshot, collection, query, where, Timestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Optional, if you want to use Analytics
 
+        // =====================================================================
+        // Firebase Configuration
+        // =====================================================================
         // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDUf0QF4GqMb6s9ODTUiX7aTHRTR0YUqcE",
@@ -154,62 +158,161 @@
             projectId: "html-3ce83",
             storageBucket: "html-3ce83.firebasestorage.app",
             messagingSenderId: "602585837585",
-            appId: "1:602585837585:web:77c6f1adf8e7edfc4d81b0",
-            measurementId: "G-GFRJP832GJ"
+            appId: "1:602585837585:web:470e15eb4a5fd4d64d81b0",
+            measurementId: "G-44BG2J1XQ3"
         };
 
-        // Firebase App and Services
+        // For GitHub, we will use the projectId from your config as the appId for Firestore paths.
+        const appId = firebaseConfig.projectId;
+
+        // Initialize Firebase
         let app;
         let db;
         let auth;
-        let userId = null;
-        let salesCollectionRef;
-        let currentSalesData = []; // Store fetched sales data for summary
+        // let analytics; // Uncomment if you use analytics
 
-        // UI Elements
-        const currentDateElem = document.getElementById('currentDate');
-        const prevDateBtn = document.getElementById('prevDate');
-        const nextDateBtn = document.getElementById('nextDate');
-        const salesListElem = document.getElementById('salesList');
-        const amountInput = document.getElementById('amountInput'); // Now a textarea
-        const addBetButton = document.getElementById('addBetButton');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const showTotalSalesBtn = document.getElementById('showTotalSalesBtn'); // New button
+        let currentUserId = null;
+        let currentUserNickname = 'အမည်မသိ'; // Default nickname before loading
+        let isAdmin = false;
+        let unsubscribeSales = null; // To store the unsubscribe function for sales data listener
 
-        // Session UI Elements
-        const morningSessionBtn = document.getElementById('morningSessionBtn');
-        const eveningSessionBtn = document.getElementById('eveningSessionBtn');
+        /**
+         * Initializes Firebase application, authentication, and Firestore.
+         * Handles anonymous sign-in and sets up an auth state listener.
+         */
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                // analytics = getAnalytics(app); // Uncomment if you use analytics
 
-        // Custom Modal Elements
-        const customModal = document.getElementById('customModal');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        const modalOkBtn = document.getElementById('modalOkBtn');
+                // For GitHub hosting, we sign in anonymously as there's no custom token.
+                // If you need persistent user accounts (e.g., email/password), you'll need
+                // to implement those authentication flows.
+                await signInAnonymously(auth);
 
-        // Correction Modal Elements
-        const correctionModal = document.getElementById('correctionModal');
-        const correctionModalMessage = document.getElementById('correctionModalMessage');
-        const correctionInput = document.getElementById('correctionInput');
-        const correctAndAddBtn = document.getElementById('correctAndAddBtn');
-        const closeCorrectionModalBtn = document.getElementById('closeCorrectionModalBtn');
+                // Listen for authentication state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        console.log('Authenticated with UID:', currentUserId);
+                        await loadUserProfile(); // Load user profile after authentication
+                        updateDateDisplay(); // Update date and setup sales listener
+                    } else {
+                        console.log('User signed out or not authenticated.');
+                        currentUserId = null;
+                        currentUserNickname = 'အမည်မသိ';
+                        isAdmin = false;
+                        document.getElementById('current-nickname').textContent = currentUserNickname;
+                        document.getElementById('admin-view-button').classList.add('hidden');
+                        // Clear sales list if no user
+                        document.getElementById('sales-list').innerHTML = '<p class="text-center text-gray-500">အရောင်းစာရင်းများ မရှိသေးပါ။</p>';
+                        document.getElementById('daily-total').textContent = '0';
+                        if (unsubscribeSales) {
+                            unsubscribeSales(); // Unsubscribe if user logs out
+                            unsubscribeSales = null;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                displayMessage("Firebase စတင်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
+            }
+        }
 
-        // Total Sales Summary Modal Elements
-        const summaryModal = document.getElementById('summaryModal');
-        const summaryDateElem = document.getElementById('summaryDate');
-        const summaryContentElem = document.getElementById('summaryContent');
-        const summaryTotalAmountElem = document.getElementById('summaryTotalAmount');
-        const copySummaryBtn = document.getElementById('copySummaryBtn');
-        const closeSummaryModalBtn = document.getElementById('closeSummaryModalBtn');
+        /**
+         * Loads the current user's profile (nickname and admin status) from Firestore.
+         * Updates UI elements based on the loaded profile.
+         */
+        async function loadUserProfile() {
+            if (!currentUserId) return;
+            // Note: For GitHub, the collection path uses the 'appId' defined above.
+            // Ensure your Firestore Security Rules allow read/write for this path:
+            // match /artifacts/{appId}/users/{userId}/profile/data {
+            //   allow read, write: if request.auth != null && request.auth.uid == userId;
+            // }
+            const userProfileRef = doc(db, `artifacts/${appId}/users/${currentUserId}/profile/data`);
+            try {
+                const docSnap = await getDoc(userProfileRef);
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    currentUserNickname = profileData.nickname || 'အမည်မသိ';
+                    isAdmin = profileData.nickname === 'MMHMMA556551'; // Check for admin nickname
+                    document.getElementById('current-nickname').textContent = currentUserNickname;
+                    document.getElementById('nickname-input-field').value = currentUserNickname;
+                    document.getElementById('nickname-input-field').disabled = true; // Disable if nickname already set
+                    document.getElementById('set-nickname-button').disabled = true;
+                    if (isAdmin) {
+                        document.getElementById('admin-view-button').classList.remove('hidden');
+                    } else {
+                        document.getElementById('admin-view-button').classList.add('hidden');
+                    }
+                } else {
+                    // No profile yet, allow setting nickname
+                    document.getElementById('current-nickname').textContent = 'အမည်မသိ';
+                    document.getElementById('nickname-input-field').value = '';
+                    document.getElementById('nickname-input-field').disabled = false;
+                    document.getElementById('set-nickname-button').disabled = false;
+                    document.getElementById('admin-view-button').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Error loading user profile:", error);
+                displayMessage("အသုံးပြုသူအချက်အလက်များ တင်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
+            }
+        }
 
-        // Toast Message Element
-        const toastMessageElem = document.getElementById('toastMessage');
+        /**
+         * Sets or updates the user's nickname in Firestore.
+         * A nickname can only be set once per user.
+         */
+        async function setNickname() {
+            const nicknameInput = document.getElementById('nickname-input-field').value.trim();
+            if (!nicknameInput) {
+                displayMessage("Nickname ထည့်ပါ။");
+                return;
+            }
+            if (!currentUserId) {
+                displayMessage("အသုံးပြုသူ ID မရှိသေးပါ။");
+                return;
+            }
 
-        // Date and Session state
-        let selectedDate = new Date(); // Default to today
-        let currentSession = 'morning'; // 'morning' or 'evening'
+            const userProfileRef = doc(db, `artifacts/${appId}/users/${currentUserId}/profile/data`);
+            try {
+                const docSnap = await getDoc(userProfileRef);
+                if (docSnap.exists() && docSnap.data().nickname) {
+                    displayMessage("Nickname ကို တစ်ကြိမ်သာ ထည့်သွင်းခွင့်ရှိပါသည်။");
+                    return;
+                }
 
-        // Function to format date to McClellan-MM-DD
+                await setDoc(userProfileRef, { nickname: nicknameInput }, { merge: true });
+                currentUserNickname = nicknameInput;
+                isAdmin = currentUserNickname === 'MMHMMA556551';
+                document.getElementById('current-nickname').textContent = currentUserNickname;
+                document.getElementById('nickname-input-field').disabled = true;
+                document.getElementById('set-nickname-button').disabled = true;
+                if (isAdmin) {
+                    document.getElementById('admin-view-button').classList.remove('hidden');
+                } else {
+                    document.getElementById('admin-view-button').classList.add('hidden');
+                }
+                displayMessage("Nickname အောင်မြင်စွာ သတ်မှတ်ပြီးပါပြီ။");
+                closeModal('nickname-modal');
+                updateDateDisplay(); // Re-trigger sales listener with potentially new nickname
+            } catch (error) {
+                console.error("Error setting nickname:", error);
+                displayMessage("Nickname သတ်မှတ်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
+            }
+        }
+
+        // Date management
+        let currentDate = new Date(); // Stores the currently displayed date
+
+        /**
+         * Formats a Date object into a YYYY-MM-DD string.
+         * @param {Date} date - The date to format.
+         * @returns {string} The formatted date string.
+         */
         function formatDate(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -217,567 +320,321 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Function to show custom modal (alert or confirm)
-        function showCustomModal(message, type = 'alert') {
-            return new Promise((resolve) => {
-                modalMessage.textContent = message;
-                modalConfirmBtn.classList.add('hidden');
-                modalCancelBtn.classList.add('hidden');
-                modalOkBtn.classList.add('hidden');
-
-                if (type === 'confirm') {
-                    modalConfirmBtn.classList.remove('hidden');
-                    modalCancelBtn.classList.remove('hidden');
-                    modalConfirmBtn.onclick = () => {
-                        customModal.classList.add('hidden');
-                        resolve(true);
-                    };
-                    modalCancelBtn.onclick = () => {
-                        customModal.classList.add('hidden');
-                        resolve(false);
-                    };
-                } else { // type === 'alert'
-                    modalOkBtn.classList.remove('hidden');
-                    modalOkBtn.onclick = () => {
-                        customModal.classList.add('hidden');
-                        resolve(true);
-                    };
-                }
-                customModal.classList.remove('hidden');
-            });
-        }
-
-        // Function to show toast message
-        function showToast(message, duration = 3000) {
-            toastMessageElem.textContent = message;
-            toastMessageElem.classList.remove('hidden');
-            setTimeout(() => {
-                toastMessageElem.classList.add('hidden');
-            }, duration);
-        }
-
-        // Function to update session buttons' appearance
-        function updateSessionButtons() {
-            if (currentSession === 'morning') {
-                morningSessionBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
-                morningSessionBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-                eveningSessionBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                eveningSessionBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
-            } else {
-                eveningSessionBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
-                eveningSessionBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-                morningSessionBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                morningSessionBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+        /**
+         * Updates the displayed date and triggers loading of sales entries for the new date.
+         */
+        function updateDateDisplay() {
+            document.getElementById('current-date').textContent = formatDate(currentDate);
+            if (currentUserId) {
+                setupSalesListener(); // Setup or re-setup Firestore listener for the new date
             }
         }
-
-        // Function to update date and session display
-        function updateDateDisplay() {
-            const sessionText = currentSession === 'morning' ? '(မနက်)' : '(ညနေ)';
-            currentDateElem.textContent = `${formatDate(selectedDate)} ${sessionText}`;
-            fetchSalesForSelectedDate();
-            updateSessionButtons(); // Update button appearance
-        }
-
-        // Function to show loading indicator
-        function showLoading() {
-            loadingIndicator.classList.remove('hidden');
-        }
-
-        // Function to hide loading indicator
-        function hideLoading() {
-            loadingIndicator.classList.add('hidden');
-        }
-
-        // Helper to format number to 2 digits (e.g., 1 -> 01)
-        const formatTwoDigits = (num) => String(num).padStart(2, '0');
-
-        // Helper to get reverse of a 2-digit number (e.g., 12 -> 21)
-        const getReverse = (numStr) => {
-            if (typeof numStr !== 'string' || numStr.length !== 2) return null;
-            return numStr[1] + numStr[0];
-        };
 
         /**
-         * Parses a single line of input and calculates its total amount.
-         * Returns { totalAmount: number, rawInput: string }.
-         * Throws an error if parsing fails.
+         * Changes the current date by a specified number of days.
+         * @param {number} days - The number of days to add or subtract.
          */
-        function parseSingleLineBet(lineInput) {
-            let totalCalculatedAmount = 0;
-            const originalLine = lineInput.trim();
-
-            let cleanedLine = originalLine.toLowerCase().replace(/က/g, '=').replace(/\s+/g, ' ').trim();
-
-            // 1. "ပါဝါ" (power)
-            const powerMatch = cleanedLine.match(/^(?:ပါဝါ)\s*[=.\-]?\s*(\d+)$/);
-            if (powerMatch) {
-                const amount = parseInt(powerMatch[1]);
-                if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-                totalCalculatedAmount = 10 * amount; // 10 power numbers (16, 61, 27, 72, etc.)
-                return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
-            }
-
-            // 2. "အပူး" / "ပူးစုံ" (doubles)
-            const doublesMatch = cleanedLine.match(/^(?:အပူး|ပူးစုံ)\s*=?\s*(\d+)$/);
-            if (doublesMatch) {
-                const amount = parseInt(doublesMatch[1]);
-                if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-                totalCalculatedAmount = 10 * amount; // 10 double numbers (00, 11, ..., 99)
-                return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
-            }
-
-            // 3. "ပါ" / "ပါတ်" (contains)
-            const containsMatch = cleanedLine.match(/^(\d)\s*(?:ပါ|ပါတ်)\s*(\d+)$/);
-            if (containsMatch) {
-                const digit = containsMatch[1];
-                const amount = parseInt(containsMatch[2]);
-                if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-                let count = 0;
-                for (let i = 0; i <= 99; i++) {
-                    const numStr = formatTwoDigits(i);
-                    if (numStr.includes(digit)) {
-                        count++;
-                    }
-                }
-                totalCalculatedAmount = count * amount;
-                return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
-            }
-
-            // 4. "ထိပ်" (starts with)
-            const startsWithMatch = cleanedLine.match(/^(\d)\s*ထိပ်\s*(\d+)$/);
-            if (startsWithMatch) {
-                const amount = parseInt(startsWithMatch[2]);
-                if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-                totalCalculatedAmount = 10 * amount; // 10 numbers (e.g., 10-19)
-                return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
-            }
-
-            // 5. "ပိတ်" (ends with)
-            const endsWithMatch = cleanedLine.match(/^(\d)\s*ပိတ်\s*(\d+)$/);
-            if (endsWithMatch) {
-                const amount = parseInt(endsWithMatch[2]);
-                if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-                totalCalculatedAmount = 10 * amount;
-                return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
-            }
-
-            // 6. "ခွေ" (combinations/permutations)
-            const permuteMatch = cleanedLine.match(/^(\d+)\s*ခွေ\s*(\d+)$/);
-            if (permuteMatch) {
-                const digits = permuteMatch[1].split('').map(d => parseInt(d));
-                const amount = parseInt(permuteMatch[2]);
-                if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-                let count = 0;
-                if (digits.length === 1) {
-                    count = 1;
-                } else {
-                    const generatedNumbers = new Set();
-                    for (let i = 0; i < digits.length; i++) {
-                        for (let j = 0; j < digits.length; j++) {
-                            if (i !== j) {
-                                generatedNumbers.add(`${digits[i]}${digits[j]}`);
-                            }
-                        }
-                    }
-                    count = generatedNumbers.size;
-                }
-                totalCalculatedAmount = count * amount;
-                return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
-            }
-
-            // Handle general patterns by splitting the input into segments
-            const segments = originalLine.replace(/က/g, '=').replace(/\s+/g, ' ').trim().split(/\s+/);
-
-            for (const segment of segments) {
-                // 7. Special case: NUMBER=AMOUNT[Rr]AMOUNT2 (e.g., 12=100r200)
-                const reverseInLineMatch = segment.match(/^(\d{1,2})\s*=\s*(\d+)\s*[Rr]\s*(\d+)$/);
-                if (reverseInLineMatch) {
-                    const num = formatTwoDigits(parseInt(reverseInLineMatch[1]));
-                    const amount1 = parseInt(reverseInLineMatch[2]);
-                    const amount2 = parseInt(reverseInLineMatch[3]);
-                    if (isNaN(amount1) || amount1 <= 0 || isNaN(amount2) || amount2 <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-
-                    totalCalculatedAmount += amount1;
-                    const reverseNum = getReverse(num);
-                    if (reverseNum) {
-                        totalCalculatedAmount += amount2;
-                    }
-                    continue;
-                }
-
-                // 8. General patterns: NUMBER=AMOUNT, or multiple numbers with single amount
-                const generalMatch = segment.match(/^([\d./]+)\s*([Rr=])\s*(\d+)$/);
-                if (generalMatch) {
-                    const numbersStr = generalMatch[1];
-                    const separator = generalMatch[2];
-                    const amount = parseInt(generalMatch[3]);
-
-                    if (isNaN(amount) || amount <= 0) throw new Error("မှန်ကန်သော ပမာဏကို ထည့်ပါ။");
-
-                    const individualNumbers = numbersStr.split(/[./]/).filter(n => n.length > 0);
-                    for (const numPart of individualNumbers) {
-                        let num = formatTwoDigits(parseInt(numPart));
-                        if (numPart.length === 1) {
-                            num = `0${numPart}`;
-                        } else if (numPart.length !== 2) {
-                             throw new Error(`နံပါတ်ပုံစံ မှားယွင်းနေပါသည်။: ${numPart}`);
-                        }
-                        totalCalculatedAmount += amount;
-
-                        if (separator.toLowerCase() === 'r') {
-                            const reverseNum = getReverse(num);
-                            if (reverseNum) {
-                                totalCalculatedAmount += amount;
-                            }
-                        }
-                    }
-                    continue;
-                }
-
-                throw new Error(`ထည့်သွင်းမှုပုံစံ မှားယွင်းနေပါသည်။: ${segment}`);
-            }
-
-            if (totalCalculatedAmount === 0) {
-                throw new Error("ထည့်သွင်းမှုမှ အရောင်းစာရင်းများကို ရှာမတွေ့ပါ။");
-            }
-
-            return { totalAmount: totalCalculatedAmount, rawInput: originalLine };
+        function changeDate(days) {
+            currentDate.setDate(currentDate.getDate() + days);
+            updateDateDisplay();
         }
 
-        // Initialize Firebase and set up authentication
-        async function initializeFirebase() {
-            try {
-                showLoading();
-                // Initialize Firebase with the provided config
-                app = initializeApp(firebaseConfig);
-                // analytics = getAnalytics(app); // Uncomment if you need analytics
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Determine the correct appId for Firestore collection path
-                // Using __app_id if available, otherwise fallback to firebaseConfig.projectId
-                const currentAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-
-                // Check if __initial_auth_token is defined and not null before using it
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== null) {
-                    try {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } catch (tokenError) {
-                        console.error("Error with custom token, signing in anonymously:", tokenError);
-                        await signInAnonymously(auth); // Fallback to anonymous sign-in if custom token fails
-                    }
-                } else {
-                    await signInAnonymously(auth); // Sign in anonymously if no initial token is provided
-                }
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        console.log("Authenticated user ID:", userId);
-                        // Use the determined currentAppId for the collection path
-                        salesCollectionRef = collection(db, `artifacts/${currentAppId}/users/${userId}/sales`);
-                        updateDateDisplay(); // Initial display and fetch
-                    } else {
-                        userId = null;
-                        console.log("No user signed in.");
-                        salesListElem.innerHTML = '<li class="text-center text-gray-500">အကောင့်ဝင်ရန်လိုအပ်ပါသည်။</li>';
-                    }
-                    hideLoading();
-                });
-            } catch (error) {
-                console.error("Error initializing Firebase or authenticating:", error);
-                salesListElem.innerHTML = `<li class="text-center text-red-500">ဒေတာတင်မရပါ။ (${error.message})</li>`;
-                showCustomModal(`ဒေတာတင်မရပါ။ (${error.message})`, 'alert'); // Show alert for initialization errors
-                hideLoading();
+        /**
+         * Adds a new sales entry to Firestore.
+         * Requires user to be authenticated and have a nickname set.
+         */
+        async function addSalesEntry() {
+            if (!currentUserId) {
+                displayMessage("အရောင်းစာရင်းထည့်ရန် အကောင့်ဝင်ပါ။");
+                return;
             }
-        }
-
-        // Fetch sales data for the selected date and session
-        let unsubscribeSales = null;
-
-        function fetchSalesForSelectedDate() {
-            if (!userId) {
-                console.log("User not authenticated, cannot fetch sales.");
+            if (currentUserNickname === 'အမည်မသိ') {
+                displayMessage("အရောင်းစာရင်းထည့်ရန် Nickname သတ်မှတ်ပါ။");
+                openModal('nickname-modal'); // Prompt user to set nickname
                 return;
             }
 
-            if (unsubscribeSales) {
-                unsubscribeSales();
+            const amountInput = document.getElementById('bet-amount-input');
+            const inputValue = amountInput.value.trim(); // Get input as string
+
+            if (!inputValue) { // Ensure input is not empty
+                displayMessage("ထိုးကြေးထည့်ပါ။");
+                return;
             }
 
-            salesListElem.innerHTML = '<li class="text-center text-gray-500">ဒေတာများ တင်နေပါသည်...</li>';
-            showLoading();
+            let salesAmount;
+            // Check if the input contains any non-numeric characters (excluding decimal point)
+            // This regex checks if the string contains anything other than digits and a single dot.
+            const containsNonNumericChars = /[^0-9.]/.test(inputValue);
+            const isPurelyNumeric = /^\d+(\.\d+)?$/.test(inputValue);
 
-            const formattedDate = formatDate(selectedDate);
-            // Query by both date and session
-            const q = query(salesCollectionRef, where("date", "==", formattedDate), where("session", "==", currentSession));
-
-            unsubscribeSales = onSnapshot(q, (snapshot) => {
-                salesListElem.innerHTML = '';
-                currentSalesData = [];
-                let currentDayTotal = 0;
-
-                if (snapshot.empty) {
-                    salesListElem.innerHTML = '<li class="text-center text-gray-500">ဤနေ့အတွက် အရောင်းစာရင်း မရှိသေးပါ။</li>';
-                } else {
-                    snapshot.forEach((doc) => {
-                        const sale = { id: doc.id, ...doc.data() };
-                        currentSalesData.push(sale);
-                        currentDayTotal += sale.totalAmount;
-                    });
-
-                    currentSalesData.sort((a, b) => {
-                        const tsA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
-                        const tsB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
-                        return tsA - tsB;
-                    });
-
-                    currentSalesData.forEach((sale) => {
-                        const listItem = document.createElement('li');
-                        listItem.id = `sale-${sale.id}`;
-                        listItem.className = 'flex flex-col bg-blue-100 p-3 rounded-xl shadow-sm text-gray-800 text-sm';
-                        listItem.innerHTML = `
-                            <div class="flex justify-between items-start w-full">
-                                <span class="whitespace-pre-wrap">${sale.rawInput}</span>
-                                <button data-id="${sale.id}" class="delete-btn text-red-500 hover:text-red-700 transition-colors text-xs ml-2">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                            <div class="text-right text-blue-700 font-semibold mt-1 w-full">
-                                Total=${sale.totalAmount.toLocaleString()}
-                            </div>
-                        `;
-                        salesListElem.appendChild(listItem);
-                    });
-
-                    const overallTotalListItem = document.createElement('li');
-                    overallTotalListItem.className = 'flex items-center justify-between bg-yellow-100 p-3 rounded-xl shadow-md text-yellow-800 font-bold text-base mt-4';
-                    overallTotalListItem.innerHTML = `<span>Overall Total=${currentDayTotal.toLocaleString()}</span>`;
-                    salesListElem.appendChild(overallTotalListItem);
+            if (isPurelyNumeric && !containsNonNumericChars) {
+                // If purely numeric, parse as a float and store as a number
+                const parsedAmount = parseFloat(inputValue);
+                if (parsedAmount <= 0) {
+                    displayMessage("မှန်ကန်သော ထိုးကြေးပမာဏ ထည့်ပါ။");
+                    return;
                 }
-                hideLoading();
+                salesAmount = parsedAmount;
+            } else {
+                // If it contains non-numeric characters (like '=', 'R', or newlines), store as a string
+                salesAmount = inputValue;
+            }
+
+            const salesData = {
+                userId: currentUserId,
+                nickname: currentUserNickname,
+                date: formatDate(currentDate),
+                amount: salesAmount, // Will be number or string
+                timestamp: Timestamp.now() // Use Firestore Timestamp for consistent time
+            };
+
+            try {
+                // Add sales entry to the public collection
+                // Ensure your Firestore Security Rules allow read/write for this path:
+                // match /artifacts/{appId}/public/data/salesEntries/{documentId} {
+                //   allow read, write: if request.auth != null;
+                // }
+                await addDoc(collection(db, `artifacts/${appId}/public/data/salesEntries`), salesData);
+                amountInput.value = ''; // Clear input field
+                displayMessage("အရောင်းစာရင်း ထည့်ပြီးပါပြီ။");
+            } catch (error) {
+                console.error("Error adding sales entry:", error);
+                displayMessage("အရောင်းစာရင်း ထည့်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
+            }
+        }
+
+        /**
+         * Sets up a real-time listener for sales entries specific to the current user and selected date.
+         * Updates the sales list and daily total in the UI.
+         * Unsubscribes from previous listeners to prevent duplicates.
+         */
+        function setupSalesListener() {
+            if (!currentUserId) return;
+
+            // Unsubscribe from previous listener if it exists
+            if (unsubscribeSales) {
+                unsubscribeSales();
+                unsubscribeSales = null;
+            }
+
+            const salesList = document.getElementById('sales-list');
+            // Query for sales entries belonging to the current user and current date
+            const q = query(
+                collection(db, `artifacts/${appId}/public/data/salesEntries`),
+                where("userId", "==", currentUserId),
+                where("date", "==", formatDate(currentDate))
+            );
+
+            // Set up the real-time listener
+            unsubscribeSales = onSnapshot(q, (snapshot) => {
+                salesList.innerHTML = ''; // Clear previous entries
+                let totalAmount = 0;
+                if (snapshot.empty) {
+                    salesList.innerHTML = '<p class="text-center text-gray-500">အရောင်းစာရင်းများ မရှိသေးပါ။</p>';
+                }
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const listItem = document.createElement('div');
+                    listItem.className = 'bg-white p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center';
+
+                    let amountToDisplay;
+                    if (typeof data.amount === 'number') {
+                        amountToDisplay = `<span class="font-semibold text-blue-600">${data.amount.toLocaleString()}</span> ကျပ်`;
+                        totalAmount += data.amount; // Only sum up numeric amounts
+                    } else {
+                        // For string amounts (including multi-line paste), use <pre> to preserve formatting
+                        // and ensure it's displayed exactly as entered.
+                        amountToDisplay = `<pre class="font-semibold text-blue-600 whitespace-pre-wrap">${data.amount}</pre>`;
+                    }
+
+                    listItem.innerHTML = `
+                        <div>
+                            <p class="text-sm text-gray-700">${amountToDisplay}</p>
+                            <p class="text-xs text-gray-500">အချိန်: ${new Date(data.timestamp.toDate()).toLocaleTimeString()}</p>
+                        </div>
+                        <button class="text-red-500 hover:text-red-700 text-sm delete-btn px-2 py-1 rounded-md transition duration-300 ease-in-out transform hover:scale-105" data-id="${doc.id}">ဖျက်မည်</button>
+                    `;
+                    salesList.appendChild(listItem);
+                });
+                document.getElementById('daily-total').textContent = totalAmount.toLocaleString();
+
+                // Add event listeners for delete buttons
+                salesList.querySelectorAll('.delete-btn').forEach(button => {
+                    button.onclick = (e) => deleteSalesEntry(e.target.dataset.id);
+                });
             }, (error) => {
-                console.error("Error fetching sales:", error);
-                showCustomModal(`အရောင်းစာရင်းများ တင်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။ (${error.message})`, 'alert');
-                hideLoading();
+                console.error("Error listening to sales entries:", error);
+                displayMessage("အရောင်းစာရင်းများ တင်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
             });
         }
 
-        // Function to handle adding bets (both initial and correction)
-        async function handleAddBets(inputContent, isCorrection = false) {
-            if (!userId) {
-                showCustomModal("အကောင့်ဝင်ရန်လိုအပ်ပါသည်။", 'alert');
+        /**
+         * Deletes a sales entry from Firestore.
+         * Ensures only the owner of the entry can delete it.
+         * @param {string} docId - The ID of the document to delete.
+         */
+        async function deleteSalesEntry(docId) {
+            if (!currentUserId) {
+                displayMessage("ဖျက်ရန် အကောင့်ဝင်ပါ။");
                 return;
             }
+            try {
+                const docRef = doc(db, `artifacts/${appId}/public/data/salesEntries`, docId);
+                const docSnap = await getDoc(docRef);
 
-            const lines = inputContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-            if (lines.length === 0) {
-                if (!isCorrection) amountInput.value = '';
-                else correctionInput.value = '';
-                showToast("ထည့်သွင်းစရာ စာရင်းမရှိပါ။");
-                hideLoading();
-                return;
-            }
-
-            showLoading();
-
-            let successfulParsedEntries = []; // Stores {rawInput, totalAmount} for successful lines
-            let failedLinesRaw = []; // Stores only the raw string of failed lines
-
-            for (const line of lines) {
-                try {
-                    const parsedLine = parseSingleLineBet(line);
-                    successfulParsedEntries.push(parsedLine);
-                } catch (error) {
-                    failedLinesRaw.push(line);
+                // Basic client-side check for ownership before deleting
+                if (docSnap.exists() && docSnap.data().userId === currentUserId) {
+                    await deleteDoc(docRef);
+                    displayMessage("အရောင်းစာရင်း ဖျက်ပြီးပါပြီ။");
+                } else {
+                    displayMessage("ဤစာရင်းကို ဖျက်ရန် ခွင့်ပြုချက်မရှိပါ။");
                 }
+            } catch (error) {
+                console.error("Error deleting sales entry:", error);
+                displayMessage("အရောင်းစာရင်း ဖျက်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
             }
-
-            // Process successful entries
-            if (successfulParsedEntries.length > 0) {
-                try {
-                    // Combine all successful entries into one document for storage
-                    const combinedRawInput = successfulParsedEntries.map(e => e.rawInput).join('\n');
-                    const combinedTotalAmount = successfulParsedEntries.reduce((sum, e) => sum + e.totalAmount, 0);
-
-                    await addDoc(salesCollectionRef, {
-                        date: formatDate(selectedDate),
-                        session: currentSession, // Add session field
-                        rawInput: combinedRawInput,
-                        totalAmount: combinedTotalAmount,
-                        timestamp: serverTimestamp()
-                    });
-                    showToast("အရောင်းစာရင်း ထည့်သွင်းပြီးပါပြီ။");
-                    console.log("Successful sales added.");
-
-                    // If this was a correction submission, clear and close the modal
-                    if (isCorrection) {
-                        correctionInput.value = '';
-                        correctionModal.classList.add('hidden');
-                    }
-                    // If this was an initial submission AND there are no failed lines, clear the main input
-                    // If there ARE failed lines, the main input will be updated with only the failed ones later.
-                    else if (failedLinesRaw.length === 0) {
-                        amountInput.value = '';
-                    }
-
-                } catch (error) {
-                    console.error("Error adding successful sales:", error);
-                    showCustomModal(`အောင်မြင်သော အရောင်းစာရင်းများ ထည့်သွင်းရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။ (${error.message})`, 'alert');
-                }
-            }
-
-            // Process failed entries (if any)
-            if (failedLinesRaw.length > 0) {
-                correctionInput.value = failedLinesRaw.join('\n'); // Show only failed lines in correction modal
-                correctionModalMessage.textContent = `အောက်ပါစာကြောင်းများတွင် ပုံစံမှားယွင်းမှုများရှိပါသည်။ ကျေးဇူးပြု၍ ပြင်ဆင်ပြီး ပြန်ထည့်ပါ။`;
-                correctionModal.classList.remove('hidden');
-
-                // If this was an initial submission, update the main input with only the failed lines
-                if (!isCorrection) {
-                    amountInput.value = failedLinesRaw.join('\n');
-                }
-            } else {
-                // If there were no failed lines, and it was an initial submission,
-                // and amountInput wasn't cleared by successful processing, ensure it's cleared now.
-                if (!isCorrection && successfulParsedEntries.length > 0) {
-                     amountInput.value = '';
-                }
-            }
-
-            // Final check if nothing was processed (e.g., all lines were invalid and no successful entries)
-            if (successfulParsedEntries.length === 0 && failedLinesRaw.length === 0 && lines.length > 0) {
-                showCustomModal("ထည့်သွင်းမှုမှ အရောင်းစာရင်းများကို ရှာမတွေ့ပါ။", 'alert');
-            }
-
-            hideLoading();
         }
 
-        // Add new sales entry from main input
-        addBetButton.addEventListener('click', async () => {
-            showLoading();
-            await handleAddBets(amountInput.value.trim(), false);
-        });
-
-        // Add sales entry from correction modal
-        correctAndAddBtn.addEventListener('click', async () => {
-            showLoading();
-            await handleAddBets(correctionInput.value.trim(), true);
-        });
-
-        // Close correction modal
-        closeCorrectionModalBtn.addEventListener('click', () => {
-            correctionModal.classList.add('hidden');
-            hideLoading();
-        });
-
-        // Delete sales entry (event delegation)
-        salesListElem.addEventListener('click', async (event) => {
-            if (!userId) {
-                console.error("User not authenticated. Cannot delete sales.");
-                showCustomModal("အကောင့်ဝင်ရန်လိုအပ်ပါသည်။", 'alert');
+        /**
+         * Displays the Admin View modal and loads all sales data.
+         * Only accessible if the current user is an admin.
+         */
+        function showAdminView() {
+            if (!isAdmin) {
+                displayMessage("Admin View ကို ဝင်ရောက်ရန် ခွင့်ပြုချက်မရှိပါ။");
                 return;
             }
+            openModal('admin-view-modal');
+            loadAllSalesData();
+        }
 
-            const deleteButton = event.target.closest('.delete-btn');
-            if (deleteButton) {
-                const saleId = deleteButton.dataset.id;
-                const confirmed = await showCustomModal("ဤအရောင်းကို ဖျက်ရန် သေချာပါလား။", 'confirm');
-                if (confirmed) {
-                    showLoading();
-                    try {
-                        // Use the currentAppId for the collection path during deletion
-                        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-                        await deleteDoc(doc(db, `artifacts/${currentAppId}/users/${userId}/sales`, saleId));
-                        showToast("အရောင်းစာရင်း ဖျက်ပြီးပါပြီ။");
-                        console.log("Sale deleted successfully!");
-                    } catch (error) {
-                        console.error("Error deleting sale:", error);
-                        showCustomModal(`အရောင်းဖျက်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။ (${error.message})`, 'alert');
-                    } finally {
-                        hideLoading();
-                    }
-                }
-            }
-        });
+        /**
+         * Loads all sales data from the public collection for the Admin View.
+         * Groups data by nickname and then by date for better readability.
+         */
+        async function loadAllSalesData() {
+            const adminSalesList = document.getElementById('admin-sales-list');
+            adminSalesList.innerHTML = '<p class="text-center text-gray-500">ဒေတာများ တင်နေသည်...</p>';
 
-        // Event listener for the new "Show Total Sales" button
-        showTotalSalesBtn.addEventListener('click', () => {
-            if (!userId) {
-                showCustomModal("အကောင့်ဝင်ရန်လိုအပ်ပါသည်။", 'alert');
-                return;
-            }
-
-            const formattedDate = formatDate(selectedDate);
-            const sessionText = currentSession === 'morning' ? 'မနက်' : 'ညနေ';
-            summaryDateElem.textContent = `${formattedDate} (${sessionText})`; // Include session in summary date
-
-            let totalSum = 0;
-            let summaryText = '';
-
-            if (currentSalesData.length === 0) {
-                summaryText = 'ဤနေ့အတွက် အရောင်းစာရင်း မရှိသေးပါ။';
-            } else {
-                currentSalesData.forEach(sale => {
-                    summaryText += `${sale.rawInput}\n`;
-                    totalSum += sale.totalAmount;
-                });
-            }
-            summaryText += `Total=${totalSum.toLocaleString().replace(/,/g, '')}`; // Add total to the summary text
-
-            summaryContentElem.textContent = summaryText;
-            summaryTotalAmountElem.textContent = totalSum.toLocaleString(); // Format with commas for readability
-            summaryModal.classList.remove('hidden');
-        });
-
-        // Event listener for closing the summary modal
-        closeSummaryModalBtn.addEventListener('click', () => {
-            summaryModal.classList.add('hidden');
-        });
-
-        // Event listener for copying summary to clipboard
-        copySummaryBtn.addEventListener('click', () => {
-            const fullTextToCopy = summaryContentElem.textContent;
-
-            const textarea = document.createElement('textarea');
-            textarea.value = fullTextToCopy;
-            document.body.appendChild(textarea);
-            textarea.select();
             try {
-                document.execCommand('copy');
-                showToast("စာရင်းများကို ကူးယူပြီးပါပြီ။");
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-                showCustomModal("စာရင်းများကို ကူးယူ၍မရပါ။", 'alert');
+                // Query all sales entries from the public collection
+                const q = query(collection(db, `artifacts/${appId}/public/data/salesEntries`));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    adminSalesList.innerHTML = '<p class="text-center text-gray-500">အရောင်းစာရင်းများ မရှိသေးပါ။</p>';
+                    return;
+                }
+
+                // Group data by nickname and then by date
+                const groupedSales = {};
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!groupedSales[data.nickname]) {
+                        groupedSales[data.nickname] = {};
+                    }
+                    if (!groupedSales[data.nickname][data.date]) {
+                        groupedSales[data.nickname][data.date] = [];
+                    }
+                    groupedSales[data.nickname][data.date].push(data);
+                });
+
+                adminSalesList.innerHTML = ''; // Clear loading message
+
+                // Render grouped sales data
+                for (const nickname in groupedSales) {
+                    const nicknameSection = document.createElement('div');
+                    nicknameSection.className = 'mb-6 p-4 bg-blue-50 rounded-lg shadow-md';
+                    nicknameSection.innerHTML = `<h3 class="text-lg font-bold text-blue-700 mb-3">Nickname: ${nickname}</h3>`;
+
+                    for (const date in groupedSales[nickname]) {
+                        const dateSection = document.createElement('div');
+                        dateSection.className = 'mb-4 p-3 bg-white rounded-lg shadow-sm';
+                        let dailyTotal = 0;
+                        let salesItemsHtml = '';
+                        // Sort entries by timestamp within each date
+                        groupedSales[nickname][date].sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
+                        groupedSales[nickname][date].forEach(entry => {
+                            let amountToDisplay;
+                            if (typeof entry.amount === 'number') {
+                                amountToDisplay = `${entry.amount.toLocaleString()} ကျပ်`;
+                                dailyTotal += entry.amount; // Only sum up numeric amounts for admin view total
+                            } else {
+                                amountToDisplay = `<pre class="font-semibold text-blue-600 whitespace-pre-wrap">${entry.amount}</pre>`; // Display as is for strings
+                            }
+
+                            salesItemsHtml += `
+                                <div class="flex justify-between items-center text-sm text-gray-700 mb-1">
+                                    <span>${new Date(entry.timestamp.toDate()).toLocaleTimeString()}</span>
+                                    <span class="font-semibold">${amountToDisplay}</span>
+                                </div>
+                            `;
+                        });
+                        dateSection.innerHTML += `
+                            <h4 class="text-md font-semibold text-gray-800 mb-2">ရက်စွဲ: ${date}</h4>
+                            ${salesItemsHtml}
+                            <div class="border-t pt-2 mt-2 flex justify-between font-bold text-gray-900">
+                                <span>စုစုပေါင်း:</span>
+                                <span>${dailyTotal.toLocaleString()} ကျပ်</span>
+                            </div>
+                        `;
+                        nicknameSection.appendChild(dateSection);
+                    }
+                    adminSalesList.appendChild(nicknameSection);
+                }
+
+            } catch (error) {
+                console.error("Error loading all sales data for admin view:", error);
+                adminSalesList.innerHTML = '<p class="text-center text-red-500">ဒေတာများ တင်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။</p>';
+                displayMessage("Admin View ဒေတာများ တင်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်။");
             }
-            document.body.removeChild(textarea);
-        });
+        }
 
-        // Date navigation
-        prevDateBtn.addEventListener('click', () => {
-            selectedDate.setDate(selectedDate.getDate() - 1);
-            updateDateDisplay();
-        });
+        /**
+         * Opens a specified modal by removing the 'hidden' class.
+         * @param {string} modalId - The ID of the modal element.
+         */
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
 
-        nextDateBtn.addEventListener('click', () => {
-            selectedDate.setDate(selectedDate.getDate() + 1);
-            updateDateDisplay();
-        });
+        /**
+         * Closes a specified modal by adding the 'hidden' class.
+         * @param {string} modalId - The ID of the modal element.
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
 
-        // Session button event listeners
-        morningSessionBtn.addEventListener('click', () => {
-            currentSession = 'morning';
-            updateDateDisplay();
-        });
+        /**
+         * Displays a temporary message box at the top of the screen.
+         * @param {string} message - The message to display.
+         */
+        function displayMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
 
-        eveningSessionBtn.addEventListener('click', () => {
-            currentSession = 'evening';
-            updateDateDisplay();
-        });
+        // Event Listeners - attached after the window and DOM are fully loaded
+        window.onload = function() {
+            initializeFirebase(); // Start Firebase initialization and authentication
 
-        // Initialize Firebase when the window loads
-        window.onload = initializeFirebase;
+            // Attach event listeners to UI elements
+            document.getElementById('prev-date-btn').onclick = () => changeDate(-1);
+            document.getElementById('next-date-btn').onclick = () => changeDate(1);
+            document.getElementById('nickname-circle-btn').onclick = () => openModal('nickname-modal');
+            document.getElementById('close-nickname-modal').onclick = () => closeModal('nickname-modal');
+            document.getElementById('set-nickname-button').onclick = setNickname;
+            document.getElementById('add-bet-button').onclick = addSalesEntry;
+            document.getElementById('admin-view-button').onclick = showAdminView;
+            document.getElementById('close-admin-view-modal').onclick = () => closeModal('admin-view-modal');
+        };
     </script>
 </body>
 </html>
